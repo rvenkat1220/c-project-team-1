@@ -1,0 +1,30 @@
+## Mac files
+._*
+.DS_Store
+
+.idea
+*build*/
+*.o
+*.log
+*.aux
+*.bbl
+*.blg
+*.idx
+*.toc
+*.synctex.gz
+*.out
+*.pdf
+*.bib
+*.run.xml
+*.swp
+*.dvi
+*.ps
+*.maf
+*.mtc
+*.mtc0
+
+## Project binaries
+program_team_1
+
+## IDE files
+.vscode
