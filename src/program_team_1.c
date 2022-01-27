@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     {
         int randomNumber = rand();
         char *result = (randomNumber % 2 == 0) ? "Pass" : "Fail";
-        printf("Test program #%d result: %s\n", rand(), result);
+        printf("Test program #%d result: %s\n", randomNumber, result);
         sleep(1);
     }
     return EXIT_SUCCESS;
