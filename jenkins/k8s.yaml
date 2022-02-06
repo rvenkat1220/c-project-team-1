@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: default
+  name: build
+spec:
+  containers:
+  - name: ubuntu
+    image: ubuntu:20.04
+    command:
+    - cat
+    tty: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+  - name: archlinux
+    image: archlinux:base-20220130.0.46058
+    command:
+    - cat
+    tty: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  - name: img
+    image: jessfraz/img
+    command:
+    - cat
+    tty: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+  nodeSelector:
+    kubernetes.io/os: linux
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "2"

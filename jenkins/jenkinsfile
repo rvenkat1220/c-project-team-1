@@ -1,0 +1,93 @@
+@Library('jenkins-internal@master') _
+
+def podName = "Ubuntu-${UUID.randomUUID().toString()}"
+
+pipeline {
+  agent {
+      kubernetes {
+          label podName + "-build"
+          defaultContainer 'jnlp'
+          yamlFile "jenkins/k8s.yaml"
+      }
+  }
+  options {
+      skipDefaultCheckout()
+  }
+  stages {
+    stage("Checkout Code") {
+      steps {
+        script {
+          generic.checkout('https://github.com/rvenkat1220/c-project-team-1.git')
+        }
+      }
+    }
+    stage('Build Code') {
+      parallel {
+        stage('Ubuntu') {
+          steps {
+            container("ubuntu") {
+              script {
+                buildC.build("ubuntu", "ubuntu-archive")
+              }
+            }
+          }
+        }
+        stage('ArchLinux') {
+          steps {
+            container("archlinux") {
+              script {
+                buildC.build("archlinux", "archlinux-archive")
+              }
+            }
+          }
+        }
+      }
+    }
+    stage('Create Docker Image and Push to registry') {
+      parallel {
+        stage('Ubuntu') {
+          steps {
+            container("img") {
+              dir("$WORKSPACE/jenkins/ubuntu") {
+                script{
+                  dockerRegistry.push("rvenkat1220/my-ubuntu", "ubuntu-archive")
+                }
+              }
+            }
+          }
+        }
+        stage('ArchLinux') {
+          steps {
+            container("img") {
+              dir("$WORKSPACE/jenkins/archlinux") {
+                script{
+                  dockerRegistry.push("rvenkat1220/my-archlinux", "archlinux-archive")
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        container("ubuntu") {
+          // Installing kubectl
+          sh"""
+          apt update
+          apt install curl -y
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kubectl
+          chmod +x ./kubectl
+          mv ./kubectl /usr/local/bin/kubectl
+          kubectl version --client
+          """
+
+          dir("$WORKSPACE/jenkins/deploy") {
+            sh"sed -i 's/BUILD_NUMBER/${env.BUILD_NUMBER}/g' project.yaml"
+            sh"kubectl apply -f project.yaml"
+          }
+        }
+      }
+    }
+  }
+}
